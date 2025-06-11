@@ -1,49 +1,65 @@
-// Espera a que el DOM esté completamente cargado
-document.addEventListener('DOMContentLoaded', () => {
-  const selector = document.getElementById('pueblo-select');
+// Añade un evento al desplegable que se activa cuando cambia la selección
+document.getElementById('pueblo-select').addEventListener('change', async (e) => {
+  const pueblo = e.target.value; // Obtiene el nombre del pueblo seleccionado
 
-  // Maneja el cambio de selección del usuario
-  selector.addEventListener('change', async (e) => {
-    const pueblo = e.target.value.trim();
-    if (!pueblo) return;
+  // Si no se ha seleccionado ningún pueblo, no hace nada
+  if (!pueblo) return;
 
-    const url = `https://raw.githubusercontent.com/Oleg0307/geoeditor-data/main/geodata/${pueblo}/${pueblo}.json`;
+  try {
+    // Construye la ruta al archivo JSON dentro de la misma carpeta
+    const url = `${pueblo}.json`;
 
-    try {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error("No se pudo cargar el archivo JSON.");
-      const data = await response.json();
+    // Realiza la petición para obtener el archivo JSON local
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('No se pudo obtener el archivo JSON');
 
-      // Llama a la función que carga y muestra el mapa
-      cargarMapa(data);
-    } catch (err) {
-      console.error("Error al cargar los datos del pueblo:", err);
-      alert("No se pudo cargar el archivo del pueblo seleccionado.");
-    }
-  });
+    // Parsea el contenido del JSON y llama a la función para mostrar el mapa
+    const data = await response.json();
+    cargarMapa(data);
+  } catch (error) {
+    console.error("Error:", error); // Muestra el error en la consola
+    alert("No se pudo cargar el pueblo seleccionado."); // Alerta al usuario
+  }
 });
 
-// Función que crea y muestra el mapa con marcadores
+// Variable global para la instancia del mapa
+let mapa = null;
+
+// Función que genera el mapa a partir de los datos JSON
 function cargarMapa(data) {
-  // Verifica si hay puntos válidos
-  if (!data.puntos || data.puntos.length === 0) {
-    alert("Este pueblo no tiene puntos para mostrar.");
-    return;
+  const divMapa = document.getElementById('map');
+
+  // Si ya existe un mapa anterior, lo elimina para no duplicar
+  if (mapa) {
+    mapa.remove();
+    divMapa.innerHTML = "<div id='map' style='height: 400px;'></div>";
   }
 
-  // Inicializa el mapa centrado en la primera coordenada
-  const map = L.map('map').setView(data.puntos[0].coordenadas, 14);
+  // Usa la primera coordenada para centrar el mapa
+  const primerPunto = data.puntos[0];
+  mapa = L.map('map').setView(primerPunto.coordenadas, 15);
 
-  // Añade el fondo del mapa de OpenStreetMap
+  // Añade los tiles de OpenStreetMap
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
-  }).addTo(map);
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(mapa);
 
-  // Recorre todos los puntos y los coloca como marcadores
-  data.puntos.forEach(p => {
-    if (p.coordenadas && p.coordenadas.length === 2) {
-      L.marker(p.coordenadas).addTo(map)
-        .bindPopup(`<b>${p.titulo}</b><br>${p.descripcion || ''}`);
+  // Añade los marcadores con ventanas emergentes
+  data.puntos.forEach(punto => {
+    const marcador = L.marker(punto.coordenadas).addTo(mapa);
+
+    // Construye el contenido del popup con preguntas
+    let contenido = `<b>${punto.titulo}</b><br>${punto.descripcion}<br><br>`;
+    if (punto.preguntas && punto.preguntas.length > 0) {
+      punto.preguntas.forEach(pregunta => {
+        contenido += `<i>${pregunta.enunciado}</i><br>`;
+        pregunta.opciones.forEach(opcion => {
+          contenido += `- ${opcion}<br>`;
+        });
+        contenido += `<strong>Respuesta correcta:</strong> ${pregunta.correcta}<br><br>`;
+      });
     }
+
+    marcador.bindPopup(contenido);
   });
 }

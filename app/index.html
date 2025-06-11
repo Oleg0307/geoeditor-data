@@ -2,62 +2,79 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GeoEditor - Creador de Rutas Educativas</title>
-
-  <!-- CSS de Leaflet -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-        crossorigin="" />
-  
-  <!-- Tu hoja de estilo -->
+  <title>GeoEditor</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div id="sidebar">
-    <h2>Proyecto</h2>
-    <input id="project-ciudad" placeholder="Ciudad">
-    <input id="project-zona" placeholder="Zona">
-    <input id="project-autor" placeholder="Autor">
-    <div id="project-status">Sin proyecto</div>
-    <button id="new-project">Nuevo Proyecto</button>
-    <button id="load-project">Cargar Proyecto</button>
-    <button id="save-project">Guardar Proyecto</button>
-
-    <h2>Editor de Puntos</h2>
-    <button id="add-marker">Añadir Punto</button>
-
-    <div id="marker-form" style="display:none;">
-      <input id="title" placeholder="Título del punto">
-      <textarea id="description" placeholder="Descripción"></textarea>
-      <input id="lat" placeholder="Latitud">
-      <input id="lng" placeholder="Longitud">
-      <button id="update-coords">Actualizar Coordenadas</button>
-      <button id="save-marker">Guardar Cambios</button>
-      <button id="delete-marker">Eliminar</button>
-      <button id="cancel-marker" class="small-button">Cancelar</button>
+  <header>
+    <div class="project-info">
+      <input type="text" id="project-ciudad" placeholder="Ciudad">
+      <input type="text" id="project-zona" placeholder="Zona">
+      <input type="text" id="project-autor" placeholder="Autor">
     </div>
-	<!-- Блок: preguntas[] -->
-	<div class="form-group">
-	<label>Preguntas</label>
-	<div id="preguntas-container"></div>
-	<button type="button" id="add-pregunta">Añadir pregunta</button>
-	</div>
-  </div>
+    <div class="controls">
+      <button id="new-project">Nuevo Proyecto</button>
+      <button id="save-project">Guardar Proyecto</button>
+      <button id="load-project">Cargar Proyecto</button>
+    </div>
+  </header>
 
-  <!-- Aquí se dibuja el mapa -->
-  <div id="map" style="width: 100%; height: 100%; position: absolute; top: 0; left: 200px;"></div>
+  <main>
+    <aside class="tool-panel">
+      <div class="tool-section">
+        <h3>Puntos</h3>
+        <button id="add-marker">Añadir Punto</button>
+      </div>
 
-  <!-- Coordenadas y Zoom -->
-  <div id="coordinates"></div>
-  <div id="zoom-level"></div>
+      <div class="tool-section">
+        <h3>Propiedades del Punto</h3>
+        <div id="marker-form" style="display: none;">
+          <div class="form-group">
+            <label for="title">Título</label>
+            <input type="text" id="title" class="form-control" placeholder="Nombre del lugar">
+          </div>
 
-  <!-- JavaScript de Leaflet (antes de renderer.js) -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-          crossorigin=""></script>
+          <div class="form-group">
+            <label for="description">Descripción</label>
+            <textarea id="description" class="form-control" placeholder="Breve descripción"></textarea>
+          </div>
 
-  <!-- Tu lógica de interacción -->
+          <div class="form-group">
+            <label>Coordenadas</label>
+            <input type="number" id="lat" class="form-control" step="0.000001" placeholder="Latitud">
+            <input type="number" id="lng" class="form-control" step="0.000001" placeholder="Longitud">
+            <button id="update-coords" class="btn btn-secondary">Actualizar coordenadas</button>
+          </div>
+
+          <div class="form-group">
+            <label>Preguntas</label>
+            <div id="questions-container"></div>
+          </div>
+
+          <div class="form-group" style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button id="save-marker" class="btn btn-primary">Guardar Cambios</button>
+            <button id="center-marker" class="btn btn-secondary">Centrar en punto</button>
+            <button id="delete-marker" class="btn btn-danger">Eliminar Punto</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="map-container">
+      <div id="map"></div>
+    </div>
+  </main>
+
+  <footer>
+    <span id="coordinates">Lat: 0.0000, Lng: 0.0000</span>
+    <span id="zoom-level">Zoom: 14</span>
+    <span id="project-status">Proyecto no guardado</span>
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="renderer.js"></script>
 </body>
 </html>
+
+

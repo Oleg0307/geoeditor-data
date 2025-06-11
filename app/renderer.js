@@ -1,255 +1,252 @@
-const { ipcRenderer } = require('electron');
+// app/renderer.js
 
-let map;
-let markers = [];
-let currentMarker = null;
-let addMode = false;
+//  ────────────────────────────────────────────────
+//  Единственная регистрация DOMContentLoaded
+//  ────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const { ipcRenderer } = require('electron');
+  // Leaflet уже подключён в index.html, глобальная L 
+  
+  
+  
+  // 1. Инициализация карты
+  const map = L.map('map', { doubleClickZoom: false }).setView([38.7895, 0.1669], 14);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
 
-// Inicializa el mapa
-map = L.map('map').setView([38.7939, 0.1662], 13);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
+  // 2. Ссылки на DOM
+  const formEl    = document.getElementById('marker-form');
+  const titleEl   = document.getElementById('title');
+  const descEl    = document.getElementById('description');
+  const latEl     = document.getElementById('lat');
+  const lngEl     = document.getElementById('lng');
+  const qc        = document.getElementById('questions-container');
+  const addBtn    = document.getElementById('add-marker');
+  const saveBtn   = document.getElementById('save-marker');
+  const centerBtn = document.getElementById('center-marker');
+  const delBtn    = document.getElementById('delete-marker');
+  const updateBtn = document.getElementById('update-coords');
 
-// Maneja clic para añadir marcador
-map.on('click', (e) => {
-  if (!addMode) return;
+  // 3. Глобальные переменные
+  let currentMarker   = null;
+  let markerIdCounter = 1;
+  let markers         = [];
+  let currentProject  = { pueblo:'', zona:'', autor:'', fecha_creacion:'', puntos:[] };
 
-  const marker = {
-    id: Date.now(),
-    titulo: '',
-    descripcion: '',
-    coordenadas: [e.latlng.lat, e.latlng.lng],
-    preguntas: []
-  };
-
-  const leafletMarker = L.marker(e.latlng, { draggable: true }).addTo(map);
-  leafletMarker.on('click', () => selectMarker(marker, leafletMarker));
-  leafletMarker.on('dragend', (event) => {
-    const latlng = event.target.getLatLng();
-    marker.coordenadas = [latlng.lat, latlng.lng];
-    if (currentMarker === marker) updateFormFields(marker);
-  });
-
-  marker._leaflet = leafletMarker;
-  markers.push(marker);
-  selectMarker(marker, leafletMarker);
-  addMode = false;
-});
-
-// Activa modo de añadir marcador
-document.getElementById('add-marker').addEventListener('click', () => {
-  addMode = true;
-});
-
-// Selecciona un marcador y llena el formulario
-function selectMarker(marker, leafletMarker) {
-  currentMarker = marker;
-  document.getElementById('marker-form').style.display = 'block';
-  updateFormFields(marker);
-}
-
-// Llena los campos del formulario con los datos del marcador
-function updateFormFields(marker) {
-  document.getElementById('title').value = marker.titulo;
-  document.getElementById('description').value = marker.descripcion;
-  document.getElementById('lat').value = marker.coordenadas[0];
-  document.getElementById('lng').value = marker.coordenadas[1];
-
-  // Cargar preguntas[] en el formulario
-  document.getElementById('preguntas-container').innerHTML = '';
-  (marker.preguntas || []).forEach(p => createPreguntaElement(p));
-}
-
-// Actualiza las coordenadas manualmente
-document.getElementById('update-coords').addEventListener('click', () => {
-  if (!currentMarker) return;
-  const lat = parseFloat(document.getElementById('lat').value);
-  const lng = parseFloat(document.getElementById('lng').value);
-  currentMarker.coordenadas = [lat, lng];
-  currentMarker._leaflet.setLatLng([lat, lng]);
-});
-
-// Guarda los cambios del marcador
-document.getElementById('save-marker').addEventListener('click', () => {
-  if (!currentMarker) return;
-  currentMarker.titulo = document.getElementById('title').value;
-  currentMarker.descripcion = document.getElementById('description').value;
-
-  // Procesar preguntas[] desde el DOM
-  const preguntaDivs = document.querySelectorAll('#preguntas-container .pregunta-item');
-  const preguntas = Array.from(preguntaDivs).map(div => {
-    const inputs = div.querySelectorAll('input.form-control');
-    const select = div.querySelector('select');
-    return {
-      enunciado: inputs[0].value.trim(),
-      opciones: [
-        inputs[1].value.trim(),
-        inputs[2].value.trim(),
-        inputs[3].value.trim(),
-        inputs[4].value.trim()
-      ],
-      correcta: parseInt(select.value)
-    };
-  });
-  currentMarker.preguntas = preguntas;
-
-  document.getElementById('marker-form').style.display = 'none';
-  currentMarker = null;
-});
-
-// Elimina el marcador actual
-document.getElementById('delete-marker').addEventListener('click', () => {
-  if (!currentMarker) return;
-  map.removeLayer(currentMarker._leaflet);
-  markers = markers.filter(m => m !== currentMarker);
-  currentMarker = null;
-  document.getElementById('marker-form').style.display = 'none';
-});
-
-// Cancela la edición del marcador
-document.getElementById('cancel-marker').addEventListener('click', () => {
-  currentMarker = null;
-  document.getElementById('marker-form').style.display = 'none';
-});
-
-// Crear nuevo proyecto
-document.getElementById('new-project').addEventListener('click', () => {
-  document.getElementById('project-status').textContent = 'Nuevo proyecto';
-  markers.forEach(m => map.removeLayer(m._leaflet));
-  markers = [];
-  currentMarker = null;
-  document.getElementById('marker-form').style.display = 'none';
-  clearFormFields();
-});
-
-// Guardar proyecto en disco
-document.getElementById('save-project').addEventListener('click', () => {
-  const pueblo = document.getElementById('project-ciudad').value.trim();
-  const zona = document.getElementById('project-zona').value.trim();
-  const autor = document.getElementById('project-autor').value.trim();
-  const fecha = new Date().toISOString().split('T')[0];
-
-  if (!pueblo || !zona || !autor) {
-    alert('Faltan datos del proyecto.');
-    return;
+  // 4. Утилиты
+  function clearForm() {
+    titleEl.value = '';
+    descEl.value  = '';
+    latEl.value   = '';
+    lngEl.value   = '';
+    qc.innerHTML  = '';
+    document.getElementById('add-question')?.remove();
   }
 
-  const project = {
-    pueblo,
-    zona,
-    autor,
-    fecha_creacion: fecha,
-    puntos: markers.map(m => ({
-      id: m.id,
-      titulo: m.titulo,
-      descripcion: m.descripcion,
-      coordenadas: m.coordenadas,
-      preguntas: m.preguntas
-    }))
-  };
+  function createQuestionBlock(data = null) {
+    const div = document.createElement('div');
+    div.className = 'question-item';
 
-  ipcRenderer.send('auto-save-project', { project });
-});
+    const inp = document.createElement('input');
+    inp.type        = 'text';
+    inp.className   = 'question form-control';
+    inp.placeholder = 'Texto de la pregunta';
+    if (data) inp.value = data.enunciado;
+    div.appendChild(inp);
 
-// Cargar proyecto desde disco
-document.getElementById('load-project').addEventListener('click', () => {
-  ipcRenderer.send('load-project');
-});
+    const opts = document.createElement('div');
+    opts.className = 'options';
+    for (let i = 0; i < 4; i++) {
+      const o = document.createElement('input');
+      o.type        = 'text';
+      o.className   = 'option form-control';
+      o.placeholder = `Opción ${i+1}`;
+      if (data?.opciones?.[i]) o.value = data.opciones[i];
+      opts.appendChild(o);
+    }
+    div.appendChild(opts);
 
-// Recibir proyecto cargado
-ipcRenderer.on('project-loaded', (event, project) => {
-  document.getElementById('project-ciudad').value = project.pueblo || '';
-  document.getElementById('project-zona').value = project.zona || '';
-  document.getElementById('project-autor').value = project.autor || '';
-  document.getElementById('project-status').textContent = 'Proyecto cargado';
+    const sel = document.createElement('select');
+    sel.className = 'correct-answer form-control';
+    for (let i = 0; i < 4; i++) {
+      const op = document.createElement('option');
+      op.value = i;
+      op.textContent = `Opción ${i+1} correcta`;
+      sel.appendChild(op);
+    }
+    if (data) sel.value = data.correcta;
+    div.appendChild(sel);
 
-  // Limpiar mapa y datos previos
-  markers.forEach(m => map.removeLayer(m._leaflet));
-  markers = [];
-  currentMarker = null;
+    const rem = document.createElement('button');
+    rem.className = 'btn btn-danger';
+    rem.textContent = 'Eliminar pregunta';
+    rem.onclick = () => div.remove();
+    div.appendChild(rem);
 
-  project.puntos.forEach(p => {
-    const leafletMarker = L.marker(p.coordenadas, { draggable: true }).addTo(map);
-    p._leaflet = leafletMarker;
+    return div;
+  }
 
-    leafletMarker.on('click', () => selectMarker(p, leafletMarker));
-    leafletMarker.on('dragend', (event) => {
-      const latlng = event.target.getLatLng();
-      p.coordenadas = [latlng.lat, latlng.lng];
-      if (currentMarker === p) updateFormFields(p);
+  function renderQuestions(arr) {
+    qc.innerHTML = '';
+    arr.forEach(q => qc.appendChild(createQuestionBlock(q)));
+  }
+
+  function añadirPregunta() {
+    qc.appendChild(createQuestionBlock());
+  }
+
+  // 5. Заполнение формы
+  function fillForm(marker) {
+    console.log('fillForm ►', marker.data.id);
+    const d = marker.data;
+    titleEl.value = d.titulo;
+    descEl.value  = d.descripcion;
+    const [la, lo] = marker.getLatLng();
+    latEl.value = la.toFixed(6);
+    lngEl.value = lo.toFixed(6);
+    renderQuestions(d.preguntas);
+
+    if (!document.getElementById('add-question')) {
+      const btn = document.createElement('button');
+      btn.id        = 'add-question';
+      btn.className = 'btn btn-secondary';
+      btn.textContent = 'Añadir pregunta';
+      btn.onclick   = añadirPregunta;
+      qc.after(btn);
+    }
+
+    setTimeout(() => { titleEl.focus(); titleEl.select(); }, 10);
+  }
+
+  // 6. Выбор маркера
+  function selectMarker(m) {
+    console.log('Marker clicked ►', m.data.id);
+    currentMarker = m;
+    clearForm();
+    fillForm(m);
+    formEl.style.display = 'block';
+  }
+
+  // 7. Создание нового маркера
+  function crearNuevoMarcador(latlng) {
+    const id = markerIdCounter++;
+    const icon = L.divIcon({
+      className: 'custom-div-icon',
+      html: `<div class="circle-icon">${id}</div>`,
+      iconSize: [28,28], iconAnchor: [14,28]
+    });
+    const m = L.marker(latlng, { draggable: true, icon }).addTo(map);
+    m.data = { id, titulo:'', descripcion:'', coordenadas:[latlng.lat,latlng.lng], preguntas:[] };
+
+    m.on('click', () => selectMarker(m));
+    m.on('dragend', () => {
+      if (m === currentMarker) {
+        const p = m.getLatLng();
+        latEl.value = p.lat.toFixed(6);
+        lngEl.value = p.lng.toFixed(6);
+      }
     });
 
-    markers.push(p);
+    markers.push(m);
+    currentProject.puntos.push(m.data);
+    map.panTo(latlng);
+    selectMarker(m);
+  }
+
+  addBtn.onclick = () => crearNuevoMarcador(map.getCenter());
+
+  // 8. Сохранение изменений
+  saveBtn.onclick = () => {
+    if (!currentMarker) return;
+    console.log('Saving marker ►', currentMarker.data.id);
+
+    const t = titleEl.value.trim();
+    const d = descEl.value.trim();
+    if (!t || !d) { alert('Título и descripción requeridos'); return; }
+
+    const ps = [];
+    document.querySelectorAll('.question-item').forEach(b => {
+      const en = b.querySelector('.question').value.trim();
+      const os = Array.from(b.querySelectorAll('.option')).map(x=>x.value.trim());
+      const co = parseInt(b.querySelector('.correct-answer').value);
+      if (en && os.every(o=>o)) ps.push({ enunciado: en, opciones: os, correcta: co });
+    });
+
+    const nd = { id: currentMarker.data.id, titulo: t, descripcion: d,
+                 coordenadas: [parseFloat(latEl.value), parseFloat(lngEl.value)],
+                 preguntas: ps };
+
+    currentMarker.data = nd;
+    const i = currentProject.puntos.findIndex(x=>x.id===nd.id);
+    if (i >= 0) currentProject.puntos[i] = nd;
+
+    alert('Punto guardado');
+    currentMarker = null;
+    clearForm();
+    formEl.style.display = 'none';
+  };
+
+  // 9. Центрирование, удаление, обновление координат
+  centerBtn.onclick = () => currentMarker && map.panTo(currentMarker.getLatLng());
+  delBtn.onclick    = () => {
+    if (!currentMarker) return;
+    map.removeLayer(currentMarker);
+    markers = markers.filter(x=>x!==currentMarker);
+    currentProject.puntos = currentProject.puntos.filter(x=>x.id!==currentMarker.data.id);
+    currentMarker = null;
+    clearForm();
+    formEl.style.display = 'none';
+  };
+  updateBtn.onclick = () => {
+    if (!currentMarker) return;
+    const la = parseFloat(latEl.value), lo = parseFloat(lngEl.value);
+    if (isNaN(la)||isNaN(lo)) { alert('Coordenadas inválidas'); return; }
+    currentMarker.setLatLng([la,lo]);
+    map.panTo([la,lo]);
+  };
+
+  // 10. Загрузка/сохранение проекта
+  ipcRenderer.on('project-loaded', (e, project) => {
+    // очистка
+    markers.forEach(m=>map.removeLayer(m));
+    markers = []; currentMarker = null;
+    clearForm(); formEl.style.display='none';
+    // загрузка
+    currentProject = project;
+    document.getElementById('project-ciudad').value = project.pueblo||'';
+    document.getElementById('project-zona').value   = project.zona||'';
+    document.getElementById('project-autor').value  = project.autor||'';
+
+    project.puntos.forEach(p => {
+      const icon = L.divIcon({
+        className: 'custom-div-icon',
+        html: `<div class="circle-icon">${p.id}</div>`,
+        iconSize: [28,28], iconAnchor:[14,28]
+      });
+      const m = L.marker(p.coordenadas, { draggable:true, icon }).addTo(map);
+      m.data = p;
+      m.on('click',()=> selectMarker(m));
+      m.on('dragend',()=>{
+        if (m===currentMarker){
+          const pos=m.getLatLng();
+          latEl.value = pos.lat.toFixed(6);
+          lngEl.value = pos.lng.toFixed(6);
+        }
+      });
+      markers.push(m);
+      if (p.id>=markerIdCounter) markerIdCounter = p.id+1;
+    });
+    console.log('Project loaded:', project);
+  });
+
+  document.getElementById('load-project').onclick = () => {
+    ipcRenderer.send('load-project');
+  };
+
+  ipcRenderer.on('project-saved', (e, fp) => {
+    document.getElementById('project-status').textContent = 'Proyecto guardado';
+    console.log('Project saved to', fp);
   });
 });
-
-// Confirmación de guardado
-ipcRenderer.on('project-saved', (event, filePath) => {
-  document.getElementById('project-status').textContent = `Guardado en ${filePath}`;
 });
-
-// Limpia todos los campos del formulario
-function clearFormFields() {
-  document.getElementById('project-ciudad').value = '';
-  document.getElementById('project-zona').value = '';
-  document.getElementById('project-autor').value = '';
-  document.getElementById('title').value = '';
-  document.getElementById('description').value = '';
-  document.getElementById('lat').value = '';
-  document.getElementById('lng').value = '';
-  document.getElementById('preguntas-container').innerHTML = '';
-}
-
-// Añadir nueva pregunta
-document.getElementById('add-pregunta').addEventListener('click', () => {
-  createPreguntaElement();
-});
-
-// Genera un bloque de UI para una pregunta
-function createPreguntaElement(pregunta = null) {
-  const preguntaDiv = document.createElement('div');
-  preguntaDiv.className = 'pregunta-item';
-
-  const enunciado = document.createElement('input');
-  enunciado.type = 'text';
-  enunciado.placeholder = 'Enunciado';
-  enunciado.className = 'form-control';
-  if (pregunta) enunciado.value = pregunta.enunciado;
-
-  const opciones = [];
-  const opcionesContainer = document.createElement('div');
-  opcionesContainer.className = 'options';
-  for (let i = 0; i < 4; i++) {
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.placeholder = `Opción ${i + 1}`;
-    input.className = 'form-control';
-    if (pregunta && pregunta.opciones[i]) input.value = pregunta.opciones[i];
-    opciones.push(input);
-    opcionesContainer.appendChild(input);
-  }
-
-  const correcta = document.createElement('select');
-  correcta.className = 'form-control';
-  for (let i = 0; i < 4; i++) {
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = `Correcta: opción ${i + 1}`;
-    correcta.appendChild(opt);
-  }
-  if (pregunta) correcta.value = pregunta.correcta;
-
-  const eliminarBtn = document.createElement('button');
-  eliminarBtn.type = 'button';
-  eliminarBtn.textContent = 'Eliminar';
-  eliminarBtn.className = 'btn btn-danger';
-  eliminarBtn.onclick = () => preguntaDiv.remove();
-
-  preguntaDiv.appendChild(enunciado);
-  preguntaDiv.appendChild(opcionesContainer);
-  preguntaDiv.appendChild(correcta);
-  preguntaDiv.appendChild(eliminarBtn);
-
-  document.getElementById('preguntas-container').appendChild(preguntaDiv);
-}
