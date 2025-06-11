@@ -1,56 +1,30 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
-const path = require('path');
-const fs = require('fs');
+// Añade un escuchador al selector que se activa al cambiar de opción
+document.getElementById('pueblo-select').addEventListener('change', async (e) => {
+  const pueblo = e.target.value; // Obtiene el nombre del pueblo seleccionado
 
-function createWindow() {
-  const win = new BrowserWindow({
-  width: 1200,
-  height: 800,
-  icon: path.join(__dirname, 'icon.png'), // ← добавлено
-  webPreferences: {
-    nodeIntegration: true,
-    contextIsolation: false
-    }
-  });
-
-  win.loadFile(path.join(__dirname, 'app', 'index.html'));
-}
-
-app.whenReady().then(createWindow);
-
-// Guardar proyecto
-ipcMain.on('auto-save-project', (event, { project }) => {
-  const { pueblo, zona } = project;
-  const dir = path.join(__dirname, 'geodata', pueblo);
-  const filePath = path.join(dir, `${zona}.json`);
+  if (!pueblo) return; // Si no se seleccionó un valor, finaliza la función
 
   try {
-    fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(filePath, JSON.stringify(project, null, 2), 'utf-8');
-    event.sender.send('project-saved', filePath);
-  } catch (err) {
-    dialog.showErrorBox("Error al guardar", err.message);
-  }
-});
+    // Construye la URL del archivo JSON del pueblo desde GitHub
+    const url = `https://raw.githubusercontent.com/Oleg0307/geoexplorers-data/main/geodata/${pueblo}/${pueblo}.json`;
 
-// Cargar proyecto
-ipcMain.on('load-project', async (event) => {
-  const { canceled, filePaths } = await dialog.showOpenDialog({
-    title: 'Selecciona archivo JSON',
-    defaultPath: __dirname,
-    filters: [{ name: 'JSON', extensions: ['json'] }],
-    properties: ['openFile']
-  });
+    // Realiza la petición HTTP asincrónica usando Fetch API
+    const response = await fetch(url);
 
-  if (canceled || filePaths.length === 0) return;
+    // Si la respuesta HTTP no es satisfactoria, lanza un error
+    if (!response.ok) throw new Error('No se pudo obtener el archivo JSON');
 
-  const filePath = filePaths[0];
+    // Convierte el contenido de la respuesta a objeto JavaScript
+    const data = await response.json();
 
-  try {
-    const content = fs.readFileSync(filePath, 'utf-8');
-    const project = JSON.parse(content);
-    event.sender.send('project-loaded', project);
-  } catch (err) {
-    dialog.showErrorBox("Error al cargar archivo", err.message);
+    // Llama a una función definida en otro archivo (por implementar) para mostrar el mapa
+    cargarMapa(data);
+
+  } catch (error) {
+    // Muestra un error en la consola para depuración
+    console.error("Error:", error);
+
+    // Informa al usuario sobre el fallo en la carga
+    alert("No se pudo cargar el pueblo seleccionado.");
   }
 });

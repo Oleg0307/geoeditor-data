@@ -3,61 +3,34 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GeoEditor - Creador de Rutas Educativas</title>
+  <title>GeoJuego - Selección de Pueblo</title>
 
-  <!-- CSS de Leaflet -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-        crossorigin="" />
-  
-  <!-- Tu hoja de estilo -->
-  <link rel="stylesheet" href="styles.css">
+  <!-- Inclusión de hoja de estilos de Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Inclusión de hoja de estilos de Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
-  <div id="sidebar">
-    <h2>Proyecto</h2>
-    <input id="project-ciudad" placeholder="Ciudad">
-    <input id="project-zona" placeholder="Zona">
-    <input id="project-autor" placeholder="Autor">
-    <div id="project-status">Sin proyecto</div>
-    <button id="new-project">Nuevo Proyecto</button>
-    <button id="load-project">Cargar Proyecto</button>
-    <button id="save-project">Guardar Proyecto</button>
 
-    <h2>Editor de Puntos</h2>
-    <button id="add-marker">Añadir Punto</button>
-
-    <div id="marker-form" style="display:none;">
-      <input id="title" placeholder="Título del punto">
-      <textarea id="description" placeholder="Descripción"></textarea>
-      <input id="lat" placeholder="Latitud">
-      <input id="lng" placeholder="Longitud">
-      <button id="update-coords">Actualizar Coordenadas</button>
-      <button id="save-marker">Guardar Cambios</button>
-      <button id="delete-marker">Eliminar</button>
-      <button id="cancel-marker" class="small-button">Cancelar</button>
+  <!-- Contenedor general responsivo -->
+  <div class="container-fluid p-3">
+    <!-- Menú desplegable para seleccionar pueblo -->
+    <div class="mb-3">
+      <label for="pueblo-select" class="form-label">Elige un pueblo:</label>
+      <select id="pueblo-select" class="form-select">
+        <option value="">-- Selecciona --</option>
+        <option value="javea">Jávea</option>
+        <option value="denia">Denia</option>
+      </select>
     </div>
-	<!-- Блок: preguntas[] -->
-	<div class="form-group">
-	<label>Preguntas</label>
-	<div id="preguntas-container"></div>
-	<button type="button" id="add-pregunta">Añadir pregunta</button>
-	</div>
+
+    <!-- Contenedor del mapa interactivo -->
+    <div id="map" style="height: 400px;"></div>
   </div>
 
-  <!-- Aquí se dibuja el mapa -->
-  <div id="map" style="width: 100%; height: 100%; position: absolute; top: 0; left: 200px;"></div>
-
-  <!-- Coordenadas y Zoom -->
-  <div id="coordinates"></div>
-  <div id="zoom-level"></div>
-
-  <!-- JavaScript de Leaflet (antes de renderer.js) -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-          crossorigin=""></script>
-
-  <!-- Tu lógica de interacción -->
-  <script src="renderer.js"></script>
+  <!-- Inclusión de scripts necesarios -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="main.js"></script>
 </body>
 </html>
