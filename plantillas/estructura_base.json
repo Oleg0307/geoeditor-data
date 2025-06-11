@@ -1,0 +1,25 @@
+{
+  "pueblo": "NOMBRE_DEL_PUEBLO",
+  "autor": "NOMBRE_DEL_AUTOR",
+  "fecha_creacion": "YYYY-MM-DD",
+  "puntos": [
+    {
+      "id": 1,
+      "titulo": "Lugar de Interés",
+      "descripcion": "Descripción breve...",
+      "coordenadas": [38.7939, 0.1662],
+      "preguntas": [
+        {
+          "enunciado": "Pregunta tipo test",
+          "opciones": [
+            "Opción 1",
+            "Opción 2",
+            "Opción 3",
+            "Opción 4"
+          ],
+          "correcta": 1
+        }
+      ]
+    }
+  ]
+}

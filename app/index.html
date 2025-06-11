@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GeoEditor - Creador de Rutas Educativas</title>
+
+  <!-- CSS de Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin="" />
+  
+  <!-- Tu hoja de estilo -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="sidebar">
+    <h2>Proyecto</h2>
+    <input id="project-ciudad" placeholder="Ciudad">
+    <input id="project-zona" placeholder="Zona">
+    <input id="project-autor" placeholder="Autor">
+    <div id="project-status">Sin proyecto</div>
+    <button id="new-project">Nuevo Proyecto</button>
+    <button id="load-project">Cargar Proyecto</button>
+    <button id="save-project">Guardar Proyecto</button>
+
+    <h2>Editor de Puntos</h2>
+    <button id="add-marker">Añadir Punto</button>
+
+    <div id="marker-form" style="display:none;">
+      <input id="title" placeholder="Título del punto">
+      <textarea id="description" placeholder="Descripción"></textarea>
+      <input id="lat" placeholder="Latitud">
+      <input id="lng" placeholder="Longitud">
+      <button id="update-coords">Actualizar Coordenadas</button>
+      <button id="save-marker">Guardar Cambios</button>
+      <button id="delete-marker">Eliminar</button>
+      <button id="cancel-marker" class="small-button">Cancelar</button>
+    </div>
+	<!-- Блок: preguntas[] -->
+	<div class="form-group">
+	<label>Preguntas</label>
+	<div id="preguntas-container"></div>
+	<button type="button" id="add-pregunta">Añadir pregunta</button>
+	</div>
+  </div>
+
+  <!-- Aquí se dibuja el mapa -->
+  <div id="map" style="width: 100%; height: 100%; position: absolute; top: 0; left: 200px;"></div>
+
+  <!-- Coordenadas y Zoom -->
+  <div id="coordinates"></div>
+  <div id="zoom-level"></div>
+
+  <!-- JavaScript de Leaflet (antes de renderer.js) -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+          crossorigin=""></script>
+
+  <!-- Tu lógica de interacción -->
+  <script src="renderer.js"></script>
+</body>
+</html>

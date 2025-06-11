@@ -1,0 +1,17 @@
+{
+  "pueblo": "javea",
+  "zona": "centro",
+  "autor": "oleg",
+  "fecha_creacion": "2025-06-09",
+  "puntos": [
+    {
+      "titulo": "",
+      "descripcion": "",
+      "coordenadas": [
+        38.789168,
+        0.164262
+      ],
+      "preguntas": []
+    }
+  ]
+}

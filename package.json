@@ -1,0 +1,17 @@
+{
+  "name": "geoeditor",
+  "version": "1.1.0",
+  "description": "Herramienta de autor para rutas educativas con importación/exportación JSON",
+  "main": "app/main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^28.1.0"
+  },
+  "dependencies": {
+    "leaflet": "^1.9.4"
+  }
+}

@@ -1,0 +1,9 @@
+node_modules/
+web-movil/
+*.zip
+*.exe
+*.log
+*.lock
+.idea/
+.vscode/
+saved_projects/

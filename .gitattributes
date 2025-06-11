@@ -1,0 +1,10 @@
+# Всегда использовать LF в репозитории
+* text=auto eol=lf
+
+# Отключить преобразование JSON (важно для точного соответствия)
+*.json text eol=lf
+*.js text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.md text eol=lf
+*.sh text eol=lf
