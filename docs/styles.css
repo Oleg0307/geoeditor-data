@@ -1,0 +1,26 @@
+/* Estilo principal para el contenedor del mapa */
+#map {
+  height: 400px; /* Altura del mapa en píxeles */
+  margin-top: 1em; /* Separación superior del mapa respecto a otros elementos */
+}
+
+/* Ajuste general del cuerpo de la página */
+body {
+  background-color: #f5f5f5; /* Color de fondo claro */
+  font-family: Arial, sans-serif; /* Fuente legible y estándar */
+}
+
+/* Contenedor de Bootstrap con separación interna */
+.container-fluid {
+  padding: 2em; /* Espaciado interior en el contenedor principal */
+}
+
+/* Estilo para los formularios de selección */
+.form-select {
+  max-width: 300px; /* Ancho máximo del selector desplegable */
+}
+
+/* Estilo adicional para etiquetas y encabezados */
+label, h1, h2 {
+  color: #333; /* Color de texto oscuro */
+}

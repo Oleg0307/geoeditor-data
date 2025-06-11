@@ -1,38 +1,19 @@
-<!DOCTYPE html>
-<html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GeoJuego - Selección de Pueblo</title>
-    <base href="./">
+
+  <!-- Título del documento web -->
   <title>GeoEditor Web</title>
+
+  <!-- Define la base de las rutas relativas para GitHub Pages -->
+  <base href="./">
 
   <!-- Inclusión de hoja de estilos de Bootstrap 5 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
   <!-- Inclusión de hoja de estilos de Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- Inclusión de hoja de estilos propia del proyecto (versión web) -->
+  <link rel="stylesheet" href="./styles.css">
 </head>
-<body>
-
-  <!-- Contenedor general responsivo -->
-  <div class="container-fluid p-3">
-    <!-- Menú desplegable para seleccionar pueblo -->
-    <div class="mb-3">
-      <label for="pueblo-select" class="form-label">Elige un pueblo:</label>
-      <select id="pueblo-select" class="form-select">
-        <option value="">-- Selecciona --</option>
-        <option value="javea">Jávea</option>
-        <option value="denia">Denia</option>
-      </select>
-    </div>
-
-    <!-- Contenedor del mapa interactivo -->
-    <div id="map" style="height: 400px;"></div>
-  </div>
-
-  <!-- Inclusión de scripts necesarios -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="main.js"></script>
-</body>
-</html>
